@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const { Pool, Client } = require('pg');
 const moveFile = require('../_helpers/move-file');
 const fs = require('fs');
+const sharp = require('sharp');
 
 const pool = new Pool({
 	  user: 'postgres',
@@ -58,14 +59,31 @@ async function addImages({ id, images }) {
 	for(let [indexname, image] of Object.entries(images)) {
 		const index = indexname.split('').pop(); // get the number from the end of "file0", for example
 		const { path, name } = image;
-		const dir = `./assets/user_pics/${id}`;
-		const newpath = `./assets/user_pics/${id}/${name}`;
+		const dir = `../therapybox-dashboard/public/assets/user_pics/${id}`;
+		const frontend_path = `/assets/user_pics/${id}/${name}`;
+		const fullnewpath = `../therapybox-dashboard/public/assets/user_pics/${id}/${name}`;
+		const thumbpath = `../therapybox-dashboard/public/assets/user_pics/${id}/thumb_${name}`;
+		const frontend_thumbpath = `/assets/user_pics/${id}/thumb_${name}`;
 		if (!fs.existsSync(dir)) {
 			fs.mkdirSync(dir);
 		}
-		moveFile(path, newpath);
-		const imageQuery = "INSERT INTO user_pics(user_id, pic, pic_index, pic_name) VALUES($1, $2, $3, $4) RETURNING *";
-		const imageValues = [id, `./assets/user_pics/${id}/${name}`, index, name];
+		sharp(path)
+		.resize(80)
+		.toFile(thumbpath);
+
+		sharp(path)
+			.resize(280)
+			.toFile(fullnewpath, (err, info) => { 
+				try {
+					fs.unlinkSync(path);
+				} catch (err) {
+					// deletion failed
+					console.log(err);
+				}
+			});
+
+		const imageQuery = "INSERT INTO user_pics(user_id, pic, pic_index, pic_name, thumbnail) VALUES($1, $2, $3, $4, $5) RETURNING *";
+		const imageValues = [id, frontend_path, index, name, frontend_thumbpath];
 
 		try {
 			const imageQueryResult = await pool.query(imageQuery, imageValues);

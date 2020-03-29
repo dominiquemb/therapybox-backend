@@ -8,7 +8,7 @@ router.post('/authenticate', authenticate);
 router.post('/register', register);
 router.get('/', getAll);
 router.get('/:id', getUser);
-router.post('/images', addImages);
+router.post('/:id/images', addImages);
 router.get('/:id/images', getImages);
 router.post('/:id/tasks', setTasks);
 router.get('/:id/tasks', getTasks);
