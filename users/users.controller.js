@@ -10,8 +10,9 @@ router.get('/', getAll);
 router.get('/:id', getUser);
 router.post('/:id/images', addImages);
 router.get('/:id/images', getImages);
-router.post('/:id/tasks', setTasks);
+router.post('/:id/task', addTask);
 router.get('/:id/tasks', getTasks);
+router.put('/:id/task/:task_id', updateTask);
 
 module.exports = router;
 
@@ -62,8 +63,6 @@ function addImages(req, res, next) {
 		userService.addImages(merged)
 			.then(success => {
 			if (success) {
-				console.log('added images');
-				console.log(success);
 				res.json(success);
 			} else {
 				res.status(400).json({ message: 'Unable to add images' })
@@ -73,15 +72,25 @@ function addImages(req, res, next) {
     });
 }
 
-function setTasks(req, res, next) {
-	userService.setTasks(req.body)
+function addTask(req, res, next) {
+	userService.addTask(req.body)
 		.then(success => {
 		if (success) {
-			console.log('added tasks');
-			console.log(success);
 			res.json(success);
 		} else {
-			res.status(400).json({ message: 'Unable to add tasks' })
+			res.status(400).json({ message: 'Unable to add task' })
+		}
+	})
+	.catch(err => next(err));
+}
+
+function updateTask(req, res, next) {
+	userService.updateTask(req.body)
+		.then(success => {
+		if (success) {
+			res.json(success);
+		} else {
+			res.status(400).json({ message: 'Unable to update task' })
 		}
 	})
 	.catch(err => next(err));

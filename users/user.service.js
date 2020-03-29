@@ -19,7 +19,8 @@ module.exports = {
 	register,
 	addImages,
 	getImages,
-	setTasks,
+	addTask,
+	updateTask,
 	getTasks,
 	getAll,
 	getUser
@@ -117,22 +118,42 @@ async function getImages(id) {
 	return result;
 }
 
-async function setTasks({ id, tasks }) {
-	let result = [];
+async function updateTask({ id, task }) {
+	let result = false;
 	let error = false;
-	for(let [index, task] of Object.entries(tasks)) {
-		const { description, completed } = task;
-		const query = "INSERT INTO user_tasks(user_id, description, completed) VALUES($1, $2, $3) RETURNING *";
-		const values = [id, description, completed];
+	const { description, completed, id: task_id } = task;
+	const query = "UPDATE user_tasks SET description = $1, completed = $2 WHERE id = $3 AND user_id = $4";
+	const values = [description, completed, task_id, id];
 
-		try {
-			const queryResult = await pool.query(query, values);
-			result.push(queryResult.rows[0]);
-		} catch(err) {
-			error = err;
-		}
+	try {
+		const queryResult = await pool.query(query, values);
+		result = queryResult;
+	} catch(err) {
+		console.log(err);
+		error = err;
 	}
-	if (!result.length) {
+
+	if (!result) {
+		return error;
+	}
+	return result;
+}
+
+async function addTask({ id, task }) {
+	let result = false;
+	let error = false;
+	const { description, completed } = task;
+	const query = "INSERT INTO user_tasks(user_id, description, completed) VALUES($1, $2, $3) RETURNING *";
+	const values = [id, description, completed];
+
+	try {
+		const queryResult = await pool.query(query, values);
+		result = queryResult.rows[0];
+	} catch(err) {
+		error = err;
+	}
+
+	if (!result) {
 		return error;
 	}
 	return result;
