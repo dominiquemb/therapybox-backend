@@ -3,17 +3,22 @@ const router = express.Router();
 const rp = require('request-promise');
 const randomColor = require('randomcolor');
 const csv = require('csvtojson');
+const parser = require('xml2json');
 
 // routes
 router.get('/:id/clothes', getClothes);
 router.get('/sportslosers', getSportsLosers);
 router.get('/sportsnews', getSportsHeadline);
+router.get('/news', getNews);
 
 module.exports = router;
 
 const baseHeaders = {
 	clothes: {
 		uri: 'https://therapy-box.co.uk/hackathon/clothing-api.php?username=swapnil',
+	},
+	news: {
+		uri: 'http://feeds.bbci.co.uk/news/rss.xml',
 	}
 };
 
@@ -69,6 +74,29 @@ async function getSportsLosers(req, res, next) {
 	} else {
 		res.status(400).json({messages: "There was an error fetching sports teams."});
 	}
+}
+
+async function getNews(req, res, next) {
+	let options = {};
+	options.method = 'GET';
+	options.uri = baseHeaders.news.uri
+	await rp(options)
+		.then(function(resp) {
+			const jsonResp = JSON.parse(parser.toJson(resp));
+			const { rss } = jsonResp;
+			const { channel } = rss;
+			const { item } = channel;
+			let latestItem = {};
+
+			if (item) {
+				latestItem = item[0];
+			}
+
+			res.json(latestItem);
+		})
+		.catch(function(err) {
+			res.status(400).json({ message: err })
+		});
 }
 
 async function getClothes(req, res, next) {
