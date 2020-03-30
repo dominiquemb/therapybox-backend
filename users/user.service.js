@@ -30,12 +30,14 @@ async function authenticate({ username, password }) {
 	const text = 'SELECT * FROM users WHERE username = $1';
 	const values = [username];
 	let user = false;
+	let error = false;
 
 	try {
 		const queryResult = await pool.query(text, values);
 		user = queryResult.rows[0];
 	} catch (err) {
-		console.log(err);
+		error = err;
+		return err;
 	}
 
 	if (user) {
@@ -107,11 +109,7 @@ async function getImages(id) {
 	try {
 		const queryResult = await pool.query(text, values);
 		result = queryResult.rows;
-
-		console.log('successful result');
-		console.log(result);
 	} catch (err) {
-		console.log(err);
 		result = false;
 	}
 
@@ -129,7 +127,6 @@ async function updateTask({ id, task }) {
 		const queryResult = await pool.query(query, values);
 		result = queryResult;
 	} catch(err) {
-		console.log(err);
 		error = err;
 	}
 
@@ -191,10 +188,7 @@ async function register({ first_name, last_name, username, password, images, ema
 		if (id) {
 			addImages({ id, images });
 		}
-		console.log('successful result');
-		console.log(result);
 	} catch (err) {
-		console.log(err);
 		result = false;
 	}
 
@@ -202,7 +196,6 @@ async function register({ first_name, last_name, username, password, images, ema
 }
 
 async function getUser(id) {
-	console.log(id);
 	const text = 'SELECT * FROM users WHERE id = $1 LIMIT 1';
 	const values = [id];
 	let result = {}; 
@@ -210,10 +203,7 @@ async function getUser(id) {
 	try {
 		const queryResult = await pool.query(text, values);
 		result = queryResult.rows[0];
-		console.log('successful result');
-		console.log(result);
 	} catch (err) {
-		console.log(err);
 		result = false;
 	}
 
